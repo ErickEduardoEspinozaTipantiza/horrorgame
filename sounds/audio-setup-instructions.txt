@@ -1,0 +1,49 @@
+🔊 AUDIO SETUP INSTRUCTIONS
+==========================
+
+Para agregar sonidos a tu juego "Find the Haunted Object":
+
+📁 ESTRUCTURA DE ARCHIVOS:
+-------------------------
+sounds/
+├── jumpscare.mp3     (REQUERIDO - Sonido del susto)
+└── audio-setup-instructions.txt
+
+🎵 ARCHIVOS DE SONIDO NECESARIOS:
+---------------------------------
+
+1. JUMPSCARE.MP3 (Obligatorio)
+   - Se reproduce cuando el jugador falla un intento
+   - TIMING ESPECÍFICO: Solo reproduce desde el segundo 0.05 al 0.08 (0.03 segundos)
+   - Duración total del archivo: Puede ser cualquier duración
+   - Volumen: Se reproduce al 70% del volumen máximo
+   - Tipo: Sonido de susto, grito, etc.
+   - NOTA: El juego automáticamente selecciona solo los milisegundos 50-80
+
+🔧 CONFIGURACIÓN:
+----------------
+1. Busca un archivo MP3 de susto (grito, sonido metálico, etc.)
+2. Renómbralo exactamente a: jumpscare.mp3
+3. Colócalo en esta carpeta "sounds"
+
+⚠️ NOTAS IMPORTANTES:
+--------------------
+- El archivo DEBE llamarse exactamente "jumpscare.mp3"
+- Debe estar en la carpeta "sounds"
+- Los navegadores requieren interacción del usuario antes del primer sonido
+- Si no funciona al principio, haz click en algo y luego ya funcionará
+
+🎮 PRUEBA EL SONIDO:
+------------------
+1. Pon el archivo jumpscare.mp3 en la carpeta sounds
+2. Abre el juego en el navegador
+3. Haz click en un objeto INCORRECTO
+4. Deberías escuchar el sonido del segundo 0.05 al 0.08
+
+🔍 DIAGNÓSTICO:
+--------------
+- Abre la consola del navegador (F12)
+- Busca mensajes como "✅ Jumpscare audio started successfully!"
+- Si ves "❌ Audio playback failed", revisa que el archivo esté en el lugar correcto
+
+¡El sonido ambiente se eliminó para evitar errores!

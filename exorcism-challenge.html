@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Find the Haunted Object - Exorcism Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Creepster', 'Chiller', cursive, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .dark-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            pointer-events: none;
+            z-index: 100;
+            -webkit-mask: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                transparent 0px,
+                rgba(0, 0, 0, 0.1) 40px,
+                rgba(0, 0, 0, 0.3) 70px,
+                rgba(0, 0, 0, 0.6) 100px,
+                rgba(0, 0, 0, 0.8) 120px,
+                black 150px);
+            mask: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                transparent 0px,
+                rgba(0, 0, 0, 0.1) 40px,
+                rgba(0, 0, 0, 0.3) 70px,
+                rgba(0, 0, 0, 0.6) 100px,
+                rgba(0, 0, 0, 0.8) 120px,
+                black 150px);
+            transition: none;
+        }
+
+        /* Realistic flashlight glow effect */
+        .flashlight-glow {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, 
+                rgba(255, 255, 200, 0.15) 0%,
+                rgba(255, 255, 150, 0.08) 30%,
+                rgba(255, 200, 100, 0.04) 60%,
+                transparent 80%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 150;
+            transition: none;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            /* Custom background image - replace with your image */
+            background: 
+                url('images/room-background.jpg'),
+                linear-gradient(45deg, #1a0000, #000);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            /* Fallback gradient if no background image */
+            background-image: 
+                url('images/room-background.jpg'),
+                radial-gradient(circle at 20% 30%, rgba(139, 0, 0, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 0, 0, 0.3) 0%, transparent 50%),
+                linear-gradient(45deg, #1a0000, #000);
+        }
+
+        .room {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            /* Remove default room background to show custom background */
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Add subtle overlay for better object visibility */
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .hud {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 300;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            border: 3px solid #8B0000;
+            box-shadow: 0 0 25px rgba(139, 0, 0, 0.8);
+            min-width: 280px;
+            backdrop-filter: blur(5px);
+        }
+
+        .timer, .attempts {
+            font-size: 26px;
+            color: #ff6666;
+            text-shadow: 
+                0 0 10px #ff0000,
+                2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 8px 0;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .game-title {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 32px;
+            color: #ff8888;
+            text-shadow: 
+                0 0 15px #ff0000,
+                0 0 30px #ff0000,
+                3px 3px 6px rgba(0, 0, 0, 0.9);
+            z-index: 300;
+            font-weight: bold;
+            letter-spacing: 2px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: 2px solid #8B0000;
+            backdrop-filter: blur(3px);
+        }
+
+        .investigation-clue {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            border: 4px solid #ffaa00;
+            text-align: center;
+            z-index: 300;
+            max-width: 700px;
+            box-shadow: 0 0 35px rgba(255, 170, 0, 0.8);
+            backdrop-filter: blur(8px);
+        }
+
+        .investigation-text {
+            font-size: 24px;
+            color: #ffffcc;
+            font-weight: bold;
+            text-shadow: 
+                0 0 15px #ffaa00,
+                0 0 25px #ffaa00,
+                2px 2px 6px rgba(0, 0, 0, 0.9);
+            margin: 0;
+            letter-spacing: 1.2px;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        .modal-phrase {
+            color: #ffdd66;
+            font-weight: bolder;
+            font-size: 26px;
+            text-shadow: 
+                0 0 20px #ffaa00,
+                0 0 35px #ffaa00,
+                0 0 50px #ffaa00;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .clickable-object {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 3px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+            z-index: 50;
+        }
+
+        .clickable-object:hover {
+            transform: scale(1.1);
+            border-color: #ff6666;
+            box-shadow: 0 0 20px rgba(255, 102, 102, 0.6);
+            filter: brightness(1.2) drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+        }
+
+        .clickable-object.hint-highlight {
+            animation: hintPulse 2s infinite;
+            border-color: #ffff00;
+        }
+
+        @keyframes hintPulse {
+            0%, 100% { 
+                box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 25px rgba(255, 255, 0, 0.8);
+                transform: scale(1.05);
+            }
+        }
+
+        /* Object classes - PNG images with simple color fallbacks */
+        .doll {
+            background-image: url('images/doll.png');
+            background-color: #ffdbac;
+        }
+
+        .crucifix {
+            background-image: url('images/crucifix.png');
+            background-color: #dddddd;
+        }
+
+        .painting {
+            width: 100px;
+            height: 80px;
+            background-image: url('images/painting.png');
+            background-color: #654321;
+            border: 2px solid #8B4513;
+        }
+
+        .lamp {
+            background-image: url('images/lamp.png');
+            background-color: #ffff99;
+        }
+
+        .mirror {
+            width: 90px;
+            height: 90px;
+            background-image: url('images/mirror.png');
+            background-color: #c0c0c0;
+            border-radius: 50%;
+        }
+
+        .candle {
+            background-image: url('images/candle.png');
+            background-color: #ffff99;
+        }
+
+        .message-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .message-box {
+            background: rgba(26, 0, 0, 0.98);
+            border: 4px solid #8B0000;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: 0 0 40px rgba(139, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .message-text {
+            font-size: 28px;
+            color: #ff8888;
+            text-shadow: 
+                0 0 15px #ff0000,
+                0 0 30px #ff0000,
+                2px 2px 6px rgba(0, 0, 0, 0.9);
+            margin-bottom: 25px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            line-height: 1.4;
+            white-space: pre-line;
+        }
+
+        .message-text.success {
+            color: #00ff88;
+            text-shadow: 
+                0 0 15px #00ff00,
+                0 0 30px #00ff00,
+                2px 2px 6px rgba(0, 0, 0, 0.9);
+            font-size: 22px;
+        }
+
+        .play-again-btn {
+            background: linear-gradient(145deg, #aa0000, #8B0000);
+            color: #fff;
+            border: 3px solid #ff4444;
+            padding: 18px 35px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+            letter-spacing: 1px;
+        }
+
+        .play-again-btn:hover {
+            background: linear-gradient(145deg, #cc0000, #aa0000);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 0, 0, 0.8);
+        }
+
+        .jumpscare {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Custom jumpscare image - replace with your scary PNG */
+            background: 
+                url('images/jumpscare.png') center/contain no-repeat,
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23000"/><circle cx="35" cy="35" r="8" fill="%23ff0000"/><circle cx="65" cy="35" r="8" fill="%23ff0000"/><path d="M25 70 Q50 85 75 70" stroke="%23ff0000" stroke-width="3" fill="none"/></svg>') center/cover;
+            z-index: 999;
+            display: none;
+            animation: jumpscareFlash 0.5s ease-in-out;
+        }
+
+        @keyframes jumpscareFlash {
+            0%, 100% { 
+                opacity: 0; 
+                transform: scale(0.8);
+            }
+            25% { 
+                opacity: 1; 
+                transform: scale(1.2);
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.1);
+            }
+            75% { 
+                opacity: 1; 
+                transform: scale(1.05);
+            }
+        }
+
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 18px 25px;
+            border-radius: 12px;
+            border: 3px solid #8B0000;
+            text-align: center;
+            color: #ffaaaa;
+            font-size: 17px;
+            z-index: 300;
+            max-width: 400px;
+            box-shadow: 0 0 25px rgba(139, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            line-height: 1.4;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .pulsing {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Dark overlay for flashlight effect -->
+        <div class="dark-overlay"></div>
+        
+        <!-- Realistic flashlight glow -->
+        <div class="flashlight-glow" id="flashlightGlow"></div>
+        
+        <div class="hud">
+            <div class="timer">⏰ Time: <span id="timeLeft">45</span>s</div>
+            <div class="attempts">💀 Attempts: <span id="attemptsLeft">3</span></div>
+        </div>
+        
+        <div class="game-title pulsing"> Find the Haunted Object</div>
+        
+        <!-- Investigation Clue Display -->
+        <div class="investigation-clue" id="investigationClue">
+            <p class="investigation-text" id="investigationText">
+                🔍 The paranormal investigator senses: "<span class="modal-phrase">It must be</span> something that once brought comfort..."
+            </p>
+        </div>
+        
+        <div class="room">
+            <div class="clickable-object doll" data-object="doll" data-name="Doll"></div>
+            <div class="clickable-object crucifix" data-object="crucifix" data-name="Crucifix"></div>
+            <div class="clickable-object painting" data-object="painting" data-name="Painting"></div>
+            <div class="clickable-object lamp" data-object="lamp" data-name="Lamp"></div>
+            <div class="clickable-object mirror" data-object="mirror" data-name="Mirror"></div>
+            <div class="clickable-object candle" data-object="candle" data-name="Candle"></div>
+        </div>
+        
+        <div class="instructions">
+            <strong>� NIGHTMARE MODE</strong><br>
+            Follow the investigator's clues to find the haunted object before time runs out!<br>
+            Use modals of certainty in your deduction... ⚡ 45 seconds only!
+        </div>
+    </div>
+
+    <div class="message-overlay" id="messageOverlay">
+        <div class="message-box">
+            <div class="message-text" id="messageText"></div>
+            <button class="play-again-btn" onclick="restartGame()">Try Again</button>
+        </div>
+    </div>
+
+    <div class="jumpscare" id="jumpscare"></div>
+
+    <script>
+        let gameState = {
+            timeLeft: 45,
+            attemptsLeft: 3,
+            hauntedObject: '',
+            gameRunning: false,
+            timerInterval: null
+        };
+
+        const allObjects = ['doll', 'crucifix', 'painting', 'lamp', 'mirror', 'candle'];
+        
+        // Function to position objects randomly
+        function positionObjectsRandomly() {
+            const objects = document.querySelectorAll('.clickable-object');
+            const containerWidth = window.innerWidth;
+            const containerHeight = window.innerHeight;
+            
+            // Define safe area boundaries (avoiding UI elements)
+            const margin = 120;
+            const safeWidth = containerWidth - (margin * 2);
+            const safeHeight = containerHeight - (margin * 2);
+            
+            objects.forEach(obj => {
+                let x, y;
+                let attempts = 0;
+                let validPosition = false;
+                
+                // Try to find a position that doesn't overlap with other objects
+                while (!validPosition && attempts < 20) {
+                    x = margin + Math.random() * (safeWidth - 100);
+                    y = margin + Math.random() * (safeHeight - 100);
+                    
+                    // Check if this position overlaps with other objects
+                    validPosition = true;
+                    objects.forEach(otherObj => {
+                        if (otherObj !== obj && otherObj.style.left && otherObj.style.top) {
+                            const otherX = parseFloat(otherObj.style.left);
+                            const otherY = parseFloat(otherObj.style.top);
+                            const distance = Math.sqrt(Math.pow(x - otherX, 2) + Math.pow(y - otherY, 2));
+                            
+                            if (distance < 120) { // Minimum distance between objects
+                                validPosition = false;
+                            }
+                        }
+                    });
+                    
+                    attempts++;
+                }
+                
+                obj.style.left = x + 'px';
+                obj.style.top = y + 'px';
+            });
+        }
+        
+        // Flashlight effect
+        function initFlashlight() {
+            const darkOverlay = document.querySelector('.dark-overlay');
+            const flashlightGlow = document.getElementById('flashlightGlow');
+            
+            document.addEventListener('mousemove', (e) => {
+                // Update mask position for dark overlay immediately
+                const maskX = (e.clientX / window.innerWidth) * 100;
+                const maskY = (e.clientY / window.innerHeight) * 100;
+                
+                darkOverlay.style.setProperty('--mouse-x', maskX + '%');
+                darkOverlay.style.setProperty('--mouse-y', maskY + '%');
+                
+                // Update glow effect position
+                const glowX = e.clientX - 150; // Center the glow on cursor
+                const glowY = e.clientY - 150;
+                
+                flashlightGlow.style.left = glowX + 'px';
+                flashlightGlow.style.top = glowY + 'px';
+            });
+        }
+
+        const investigationClues = {
+            doll: [
+                " The investigator whispers: \"<span class='modal-phrase'>It must be</span> something that once brought joy to children...\"",
+                " A psychic vision reveals: \"<span class='modal-phrase'>It could be</span> an object with glassy, watching eyes...\"",
+                " The spirits suggest: \"<span class='modal-phrase'>It might be</span> something that can sit and stare forever...\"",
+                " The medium declares: \"<span class='modal-phrase'>It has to be</span> a companion that turned sinister...\""
+            ],
+            crucifix: [
+                " A holy vision appears: \"<span class='modal-phrase'>It must be</span> something sacred that's been corrupted...\"",
+                " The investigator senses: \"<span class='modal-phrase'>It could be</span> an item that should protect but doesn't...\"",
+                " Whispers from beyond: \"<span class='modal-phrase'>It might be</span> a blessed object turned cursed...\"",
+                " The psychic warns: \"<span class='modal-phrase'>It has to be</span> something holy that harbors evil...\""
+            ],
+            painting: [
+                " The investigator observes: \"<span class='modal-phrase'>It must be</span> art that captured more than just a image...\"",
+                " A chilling realization: \"<span class='modal-phrase'>It could be</span> something with eyes that follow you...\"",
+                " The medium reveals: \"<span class='modal-phrase'>It might be</span> a frame that holds dark secrets...\"",
+                " Spiritual energy suggests: \"<span class='modal-phrase'>It has to be</span> a portrait with a trapped soul...\""
+            ],
+            lamp: [
+                " The psychic detects: \"<span class='modal-phrase'>It must be</span> something that should bring light but casts shadows...\"",
+                " Investigation reveals: \"<span class='modal-phrase'>It could be</span> an object that illuminates but harbors darkness...\"",
+                " The medium warns: \"<span class='modal-phrase'>It might be</span> something electric with sinister energy...\"",
+                " Paranormal activity suggests: \"<span class='modal-phrase'>It has to be</span> a source of light hiding evil...\""
+            ],
+            mirror: [
+                " The investigator gasps: \"<span class='modal-phrase'>It must be</span> something that shows more than reflections...\"",
+                " A ghostly whisper: \"<span class='modal-phrase'>It could be</span> an object that reveals hidden spirits...\"",
+                " The medium declares: \"<span class='modal-phrase'>It might be</span> a gateway between worlds...\"",
+                " Psychic energy warns: \"<span class='modal-phrase'>It has to be</span> something that reflects the supernatural...\""
+            ],
+            candle: [
+                " The investigator feels: \"<span class='modal-phrase'>It must be</span> a flame that burns with cold fire...\"",
+                " Spiritual presence suggests: \"<span class='modal-phrase'>It could be</span> wax that never fully melts away...\"",
+                " The medium warns: \"<span class='modal-phrase'>It might be</span> a light that guides spirits to our world...\"",
+                " Paranormal energy reveals: \"<span class='modal-phrase'>It has to be</span> something that glows with otherworldly power...\""
+            ]
+        };
+
+
+        
+        const modalMessages = {
+            correct: [
+                "🕵️ EXPERT INVESTIGATOR! 🕵️\n\nYour paranormal detective work was flawless!\n\nYou've proven yourself as a true PARANORMAL INVESTIGATOR by solving this supernatural mystery!",
+                "🕵️ EXPERT INVESTIGATOR! 🕵️\n\nYour paranormal detective work was flawless!\n\nYou've proven yourself as a true PARANORMAL INVESTIGATOR by solving this supernatural mystery!",
+                "🕵️ EXPERT INVESTIGATOR! 🕵️\n\nYour paranormal detective work was flawless!\n\nYou've proven yourself as a true PARANORMAL INVESTIGATOR by solving this supernatural mystery!"
+            ],
+            incorrect: [
+                "❌ It can't be the {object}... Try again!",
+                "❌ This couldn't be the haunted one... Keep searching!",
+                "❌ It might not be the {object}... Something else lurks here!"
+            ],
+            timeUp: [
+                "⏰ The demon remains! You might have been too late...",
+                "⏰ Time has run out! It could have been anywhere...",
+                "⏰ The darkness wins! You should have been faster..."
+            ],
+            failedAttempts: [
+                "💀 The demon remains! ❌ You must have missed it...",
+                "💀 All attempts failed! The evil could still be here...",
+                "💀 The haunted object stays hidden! It might be laughing at you..."
+            ]
+        };
+
+        function startGame() {
+            // Select random haunted object from all objects (Nightmare mode)
+            gameState.hauntedObject = allObjects[Math.floor(Math.random() * allObjects.length)];
+            gameState.timeLeft = 60;
+            gameState.attemptsLeft = 3;
+            gameState.gameRunning = true;
+            
+            // Position objects randomly
+            positionObjectsRandomly();
+            
+            updateDisplay();
+            updateInvestigationClue();
+            startTimer();
+            
+            // Add click listeners to all objects
+            document.querySelectorAll('.clickable-object').forEach(obj => {
+                obj.addEventListener('click', handleObjectClick);
+                obj.style.pointerEvents = 'auto';
+                obj.classList.remove('hint-highlight');
+            });
+            
+            console.log(`🎯 Haunted object selected: ${gameState.hauntedObject} (NIGHTMARE MODE)`);
+        }
+
+
+        function initGame(availableObjects) {
+            startGame();
+        }
+
+        function updateInvestigationClue() {
+            const clueElement = document.getElementById('investigationText');
+            const clues = investigationClues[gameState.hauntedObject];
+            
+            if (clues && clues.length > 0) {
+                // Show different clues based on game progress
+                let clueIndex = 0;
+                
+                // More specific clues as time runs out or attempts decrease
+                if (gameState.timeLeft < 30 || gameState.attemptsLeft <= 2) {
+                    clueIndex = Math.min(2, clues.length - 1);
+                } else if (gameState.timeLeft < 45 || gameState.attemptsLeft <= 2) {
+                    clueIndex = Math.min(1, clues.length - 1);
+                }
+                
+                clueElement.innerHTML = clues[clueIndex];
+            }
+        }
+
+        function startTimer() {
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                updateDisplay();
+                
+                // Update investigation clue as game progresses
+                if (gameState.timeLeft === 30 || gameState.timeLeft === 20 || gameState.timeLeft === 10) {
+                    updateInvestigationClue();
+                }
+                
+                if (gameState.timeLeft <= 0) {
+                    endGame('timeout');
+                }
+                
+                // Add urgency effects when time is low
+                if (gameState.timeLeft <= 10) {
+                    document.getElementById('timeLeft').style.color = '#ff0000';
+                    document.getElementById('timeLeft').style.animation = 'pulse 0.5s infinite';
+                    
+                    // Make investigation clue more urgent
+                    document.getElementById('investigationClue').style.borderColor = '#ff4444';
+                    document.getElementById('investigationClue').style.boxShadow = '0 0 30px rgba(255, 68, 68, 0.8)';
+                }
+            }, 1000);
+        }
+
+        function updateDisplay() {
+            document.getElementById('timeLeft').textContent = gameState.timeLeft;
+            document.getElementById('attemptsLeft').textContent = gameState.attemptsLeft;
+        }
+
+
+
+        function handleObjectClick(event) {
+            if (!gameState.gameRunning) return;
+            
+            const clickedObject = event.target.dataset.object;
+            const objectName = event.target.dataset.name || clickedObject.charAt(0).toUpperCase() + clickedObject.slice(1);
+            
+            if (clickedObject === gameState.hauntedObject) {
+                // Correct guess!
+                endGame('success');
+            } else {
+                // Wrong guess
+                gameState.attemptsLeft--;
+                updateDisplay();
+                
+                // Reposition all objects after wrong guess
+                setTimeout(() => {
+                    positionObjectsRandomly();
+                }, 500);
+                
+                // Update clue to be more specific after wrong guess
+                setTimeout(() => {
+                    updateInvestigationClue();
+                }, 2500);
+                
+                if (gameState.attemptsLeft <= 0) {
+                    endGame('failed');
+                } else {
+                    showIncorrectMessage(objectName);
+                    triggerJumpscare();
+                }
+            }
+        }
+
+        function showIncorrectMessage(objectName) {
+            const messages = modalMessages.incorrect;
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const finalMessage = randomMessage.replace('{object}', objectName);
+            
+            // Create temporary message
+            const tempMessage = document.createElement('div');
+            tempMessage.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(139, 0, 0, 0.9);
+                color: #fff;
+                padding: 20px;
+                border-radius: 10px;
+                font-size: 20px;
+                z-index: 500;
+                text-align: center;
+                box-shadow: 0 0 20px rgba(139, 0, 0, 0.8);
+            `;
+            tempMessage.textContent = finalMessage;
+            document.body.appendChild(tempMessage);
+            
+            setTimeout(() => {
+                document.body.removeChild(tempMessage);
+            }, 2000);
+        }
+
+        function triggerJumpscare() {
+            const jumpscare = document.getElementById('jumpscare');
+            jumpscare.style.display = 'block';
+            
+            console.log('🔊 Intentando reproducir sonido de jumpscare...');
+            
+            // Simplified audio playback - just play the whole file first
+            try {
+                const audio = new Audio('sounds/jumpscare.mp3');
+                audio.volume = 0.8; // Increased volume
+                
+                audio.play().then(() => {
+                    console.log('✅ Audio playing successfully!');
+                    
+                    // After it starts playing, we can control timing
+                    setTimeout(() => {
+                        audio.currentTime = 0.05; // Jump to 0.05 seconds
+                        console.log('⏩ Jumped to 0.05 seconds');
+                        
+                        // Stop after 0.03 seconds (at 0.08 total)
+                        setTimeout(() => {
+                            audio.pause();
+                            console.log('⏹️ Audio stopped at 0.08 seconds');
+                        }, 30);
+                    }, 50); // Small delay to ensure audio is playing
+                    
+                }).catch(error => {
+                    console.log('❌ Audio failed:', error.name, error.message);
+                    // If MP3 fails, use fallback immediately
+                    playFallbackSound();
+                });
+                
+            } catch (e) {
+                console.log('❌ Error creating audio:', e);
+                playFallbackSound();
+            }
+            
+            setTimeout(() => {
+                jumpscare.style.display = 'none';
+            }, 500);
+        }
+
+        function playFallbackSound() {
+            // Fallback scary sound effect (browser beep) if MP3 doesn't work
+            console.log('🔄 Playing fallback sound effect');
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Make a sharp, attention-grabbing sound
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Higher frequency
+                oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.6, audioContext.currentTime); // Louder
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.type = 'square'; // Sharp sound
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+                
+                console.log('✅ Fallback sound played successfully');
+            } catch (e) {
+                console.log('❌ Fallback audio failed:', e);
+                // Show visual feedback if no audio at all
+                document.body.style.backgroundColor = '#ff0000';
+                setTimeout(() => {
+                    document.body.style.backgroundColor = '#000';
+                }, 200);
+                console.log('🔴 Visual feedback shown instead of audio');
+            }
+        }
+
+        function endGame(result) {
+            gameState.gameRunning = false;
+            clearInterval(gameState.timerInterval);
+            
+            // Disable all object clicks
+            document.querySelectorAll('.clickable-object').forEach(obj => {
+                obj.style.pointerEvents = 'none';
+            });
+            
+            let message = '';
+            let messages = [];
+            
+            switch (result) {
+                case 'success':
+                    messages = modalMessages.correct;
+                    message = messages[Math.floor(Math.random() * messages.length)];
+                    // Highlight the correct object
+                    document.querySelector(`[data-object="${gameState.hauntedObject}"]`).style.border = '3px solid #00ff00';
+                    break;
+                case 'timeout':
+                    messages = modalMessages.timeUp;
+                    message = messages[Math.floor(Math.random() * messages.length)];
+                    // Reveal the haunted object
+                    document.querySelector(`[data-object="${gameState.hauntedObject}"]`).style.border = '3px solid #ffff00';
+                    break;
+                case 'failed':
+                    messages = modalMessages.failedAttempts;
+                    message = messages[Math.floor(Math.random() * messages.length)];
+                    // Reveal the haunted object
+                    document.querySelector(`[data-object="${gameState.hauntedObject}"]`).style.border = '3px solid #ffff00';
+                    break;
+            }
+            
+            setTimeout(() => {
+                const messageTextElement = document.getElementById('messageText');
+                messageTextElement.textContent = message;
+                
+                // Add special styling for success
+                if (result === 'success') {
+                    messageTextElement.classList.add('success');
+                } else {
+                    messageTextElement.classList.remove('success');
+                }
+                
+                document.getElementById('messageOverlay').style.display = 'flex';
+            }, 1000);
+        }
+
+        function restartGame() {
+            // Reset game state
+            clearInterval(gameState.timerInterval);
+            document.getElementById('messageOverlay').style.display = 'none';
+            
+            // Reset object styles
+            document.querySelectorAll('.clickable-object').forEach(obj => {
+                obj.style.border = '3px solid transparent';
+                obj.style.pointerEvents = 'auto';
+                obj.classList.remove('hint-highlight');
+            });
+            
+            // Reset timer color and investigation clue
+            document.getElementById('timeLeft').style.color = '#ff6666';
+            document.getElementById('timeLeft').style.animation = '';
+            document.getElementById('investigationClue').style.borderColor = '#ffaa00';
+            document.getElementById('investigationClue').style.boxShadow = '0 0 25px rgba(255, 170, 0, 0.7)';
+            
+            // Start new game immediately
+            startGame();
+        }
+
+        // Start the game when page loads
+        window.addEventListener('load', () => {
+            initFlashlight();
+            startGame();
+        });
+        
+        // Add atmospheric effects
+        setInterval(() => {
+            if (gameState.gameRunning) {
+                // Random lightning effect
+                if (Math.random() < 0.02) {
+                    document.body.style.background = '#fff';
+                    setTimeout(() => {
+                        document.body.style.background = '#000';
+                    }, 100);
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

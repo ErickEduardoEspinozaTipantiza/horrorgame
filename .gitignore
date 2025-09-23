@@ -1,0 +1,24 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Optional: Uncomment if you want to ignore custom images/sounds
+# images/
+# sounds/
+
+# Keep instruction files
+!sounds/audio-setup-instructions.txt

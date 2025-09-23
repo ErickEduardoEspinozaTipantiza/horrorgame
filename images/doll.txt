@@ -1,0 +1,12 @@
+<!-- Placeholder text file for doll.png - Replace this with actual PNG image -->
+This is a placeholder file. 
+Replace this file with your actual doll.png image (scary doll).
+
+The image should be:
+- PNG format
+- 200x200 pixels or similar
+- Transparent background preferred
+- Creepy/gothic style
+
+Once you place the real PNG file here with name "doll.png", 
+the game will automatically use it instead of the SVG placeholder.
