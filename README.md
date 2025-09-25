@@ -13,7 +13,7 @@ Un juego interactivo de terror educativo diseñado para practicar **modales de c
 
 ## 🚀 Jugar Ahora
 
-[🎮 **JUGAR EL JUEGO** 🎮](https://[tu-usuario].github.io/exorcism-challenge/)
+[🎮 **JUGAR EL JUEGO** 🎮](https://ErickEduardoEspinozaTipantiza.github.io/horrorgame/exorcism-challenge.html)
 
 ## 📁 Estructura del Proyecto
 

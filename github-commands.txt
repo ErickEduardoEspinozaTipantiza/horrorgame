@@ -1,0 +1,14 @@
+# 🚀 Comandos para subir a GitHub
+
+# Reemplaza TU-USUARIO con tu nombre de usuario de GitHub
+
+# 1. Agregar repositorio remoto
+git remote add origin https://github.com/TU-USUARIO/exorcism-challenge.git
+
+# 2. Subir el código
+git push -u origin main
+
+# 3. Tu juego estará disponible en:
+# https://TU-USUARIO.github.io/exorcism-challenge/exorcism-challenge.html
+
+# NOTA: GitHub Pages puede tardar unos minutos en activarse la primera vez
